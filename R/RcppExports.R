@@ -25,7 +25,7 @@
 #' @keywords regression smooth nonparametric
 #'
 #' @export
-project_to_curve <- function(x, s, stretch = 2) {
-    .Call('_princurve_project_to_curve', PACKAGE = 'princurve', x, s, stretch)
+project_to_curve <- function(x, s0, stretch = 2) {
+    .Call('_princurve_project_to_curve', PACKAGE = 'princurve', x, s0, stretch)
 }
 

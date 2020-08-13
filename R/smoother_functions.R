@@ -16,6 +16,21 @@ smoother_functions <- list(
     lambda <- lambda[ord]
     xj <- xj[ord]
     fit <- stats::smooth.spline(lambda, xj, ..., df = df, keep.data = FALSE)
+    # cat(fit$df, '\n')
+    stats::predict(fit, x = lambda)$y
+  },
+
+  # doc of smooth_spline said
+  # "If spar and lambda are missing or NULL,
+  #  the value of df is used to determine the degree of smoothing.
+  #  If df is missing as well, leave-one-out cross-validation
+  #  (ordinary or ‘generalized’ as determined by cv) is used to determine λ (penalty parameter)."
+  cv_smooth_spline = function(lambda, xj, ...) {
+    ord <- order(lambda)
+    lambda <- lambda[ord]
+    xj <- xj[ord]
+    fit <- stats::smooth.spline(lambda, xj, ..., keep.data = FALSE)
+    # cat(fit$df, '\n')
     stats::predict(fit, x = lambda)$y
   },
 

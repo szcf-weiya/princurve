@@ -6,15 +6,15 @@
 using namespace Rcpp;
 
 // project_to_curve
-List project_to_curve(NumericMatrix x, NumericMatrix s, double stretch);
-RcppExport SEXP _princurve_project_to_curve(SEXP xSEXP, SEXP sSEXP, SEXP stretchSEXP) {
+List project_to_curve(NumericMatrix x, NumericMatrix s0, double stretch);
+RcppExport SEXP _princurve_project_to_curve(SEXP xSEXP, SEXP s0SEXP, SEXP stretchSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type s(sSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type s0(s0SEXP);
     Rcpp::traits::input_parameter< double >::type stretch(stretchSEXP);
-    rcpp_result_gen = Rcpp::wrap(project_to_curve(x, s, stretch));
+    rcpp_result_gen = Rcpp::wrap(project_to_curve(x, s0, stretch));
     return rcpp_result_gen;
 END_RCPP
 }

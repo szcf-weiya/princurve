@@ -51,7 +51,8 @@ IntegerVector order(const NumericVector & x) {
 //'
 //' @export
 // [[Rcpp::export]]
-List project_to_curve(NumericMatrix x, NumericMatrix s, double stretch = 2) {
+List project_to_curve(NumericMatrix x, NumericMatrix s0, double stretch = 2) {
+  NumericMatrix s = Rcpp::clone(s0);
   if (stretch > 0) {
     int n = s.nrow();
     NumericVector diff1 = s(0, _) - s(1, _);
