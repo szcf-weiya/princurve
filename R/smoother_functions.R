@@ -60,6 +60,23 @@ smoother_functions <- list(
     stats::predict(fit, x = lambda)$y
   },
 
+  monotone_cubic_spline = function(lambda, xj, ..., J  = 10) {
+    ord <- order(lambda)
+    lambda <- lambda[ord]
+    xj <- xj[ord]
+    H = splines::bs(lambda, df = J, intercept = TRUE)
+    if (sum(xj > -0.1) > 60) { # dop
+      A = diag(J)
+      diag(A[1:J-1, 2:J]) = -1
+      b = numeric(J-1)
+      beta = lsei::lsi(H, xj, e = A[1:J-1,], f = b)
+      predict(H, x = lambda) %*% beta
+    } else {
+      beta = lm(xj ~ 0 + H)$coefficients
+      predict(H, x = lambda) %*% beta
+    }
+  },
+
   w_smooth_spline = function(lambda, xj, ...) {
     ord <- order(lambda)
     lambda <- lambda[ord]
