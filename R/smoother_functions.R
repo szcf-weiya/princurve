@@ -77,6 +77,23 @@ smoother_functions <- list(
     }
   },
 
+  double_monotone_cubic_spline = function(lambda, xj, ..., J  = 10) {
+    ord <- order(lambda)
+    lambda <- lambda[ord]
+    xj <- xj[ord]
+    H = splines::bs(lambda, df = J, intercept = TRUE)
+    A = diag(J)
+    diag(A[1:J-1, 2:J]) = -1
+    b = numeric(J-1)
+    if (sum(xj > -0.1) > 60) { # dop
+      beta = lsei::lsi(H, xj, e = A[1:J-1,], f = b)
+    } else {
+      beta = lsei::lsi(H, xj, e = -A[1:J-1,], f = b)
+    }
+    predict(H, x = lambda) %*% beta
+  },
+
+
   w_smooth_spline = function(lambda, xj, ...) {
     ord <- order(lambda)
     lambda <- lambda[ord]
