@@ -36,6 +36,34 @@ tophist = function(x, binwidth = 0.02) {
   }
   left_bin[which.max(counts)] + binwidth / 2
 }
+sol_cubic_monotone_smooth_spline = function(y, B, Omega, alpha = 1, lambda = 1.0) {
+  J = ncol(B)
+  x = CVXR::Variable(J)
+  A = diag(J) * alpha
+  diag(A[1:J-1, 2:J]) = -1 * alpha
+  b = numeric(J-1)
+  Omega = (Omega + t(Omega)) / 2
+  eig = eigen(Omega)
+  d = eig$values
+  if (sum(d < 0)) {
+    cat("negative eigenvalues: ", d[d < 0], "\n")
+    d[d < 0] = 0
+    #Omega = eig$vectors %*% diag(d) %*% t(eig$vectors)
+  }
+  V = t(eig$vectors %*% diag(sqrt(d))) # Omega = PDP' = PD^{1/2} D^{1/2}P' := V'V
+#  obj = CVXR::Minimize(CVXR::sum_squares(B %*% x - y) + lambda * CVXR::quad_form(x, Omega))
+  obj = CVXR::Minimize(CVXR::sum_squares(B %*% x - y) + lambda * CVXR::sum_squares(V %*% x))
+#  obj = CVXR::Minimize(CVXR::sum_squares(B %*% x - y))
+  # alpha = 1: increasing
+  # alpha = -1: decreasing
+#  conds = list(A[1:J-1,] %*% x <= b,  CVXR::quad_form(x, Omega)<= 100)
+  conds = list(A[1:J-1,] %*% x <= b)
+  sol = CVXR::solve(CVXR::Problem(obj, conds))
+  if (sol$status == "optimal")
+    return(sol$getValue(x))
+  else
+    return(NULL)
+}
 smoother_functions <- list(
   smooth_spline = function(lambda, xj, ..., df = 5) {
     ord <- order(lambda)
@@ -93,6 +121,27 @@ smoother_functions <- list(
     predict(H, x = lambda) %*% beta
   },
 
+  double_monotone_cubic_smooth_spline = function(lambda, xj, ..., mu = 1.0, by=5) {
+    ord <- order(lambda)
+    lambda <- lambda[ord]
+    xj <- xj[ord]
+    n = length(lambda)
+    bbasis = fda::create.bspline.basis(breaks = unique(lambda[seq(1, n, by=by)]), norder = 4)
+    J = bbasis$nbasis
+    Omega = fda::eval.penalty(bbasis, 2)
+    B = fda::eval.basis(lambda, bbasis)
+    if (sum(xj > -0.1) > 60) #dop
+      alpha = -1
+    else
+      alpha = 1
+    gamma = sol_cubic_monotone_smooth_spline(xj, B, Omega, alpha = alpha, lambda = mu)
+    if (is.null(gamma)){
+      cat("No optimal solution, and use double monotone cubic spline")
+      double_monotone_cubic_spline(lambda, xj, ...)
+    } else {
+      B %*% gamma
+    }
+  },
 
   w_smooth_spline = function(lambda, xj, ...) {
     ord <- order(lambda)
